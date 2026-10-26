@@ -1,0 +1,113 @@
+import { Rule } from '@ghostfolio/api/models/rule';
+import { ExchangeRateDataService } from '@ghostfolio/api/services/exchange-rate-data/exchange-rate-data.service';
+import { I18nService } from '@ghostfolio/api/services/i18n/i18n.service';
+import { RuleSettings } from '@ghostfolio/common/interfaces';
+
+export class EconomicMarketClusterRiskEmergingMarkets extends Rule<Settings> {
+  private currentValueInBaseCurrency: number;
+  private emergingMarketsValueInBaseCurrency: number;
+  private i18nService: I18nService;
+
+  public constructor({
+    currentValueInBaseCurrency,
+    emergingMarketsValueInBaseCurrency,
+    exchangeRateDataService,
+    i18nService,
+    languageCode
+  }: {
+    currentValueInBaseCurrency: number;
+    emergingMarketsValueInBaseCurrency: number;
+    exchangeRateDataService: ExchangeRateDataService;
+    i18nService: I18nService;
+    languageCode: string;
+  }) {
+    super({
+      exchangeRateDataService,
+      languageCode,
+      key: 'EconomicMarketClusterRiskEmergingMarkets'
+    });
+
+    this.currentValueInBaseCurrency = currentValueInBaseCurrency;
+    this.emergingMarketsValueInBaseCurrency =
+      emergingMarketsValueInBaseCurrency;
+    this.i18nService = i18nService;
+  }
+
+  public evaluate(ruleSettings: Settings) {
+    const emergingMarketsValueRatio = this.currentValueInBaseCurrency
+      ? this.emergingMarketsValueInBaseCurrency /
+        this.currentValueInBaseCurrency
+      : 0;
+
+    if (emergingMarketsValueRatio > ruleSettings.thresholdMax) {
+      return {
+        evaluation: this.i18nService.getTranslation({
+          id: 'rule.economicMarketClusterRiskEmergingMarkets.false.max',
+          languageCode: this.getLanguageCode(),
+          placeholders: {
+            emergingMarketsValueRatio: (
+              emergingMarketsValueRatio * 100
+            ).toPrecision(3),
+            thresholdMax: (ruleSettings.thresholdMax * 100).toPrecision(3)
+          }
+        }),
+        value: false
+      };
+    } else if (emergingMarketsValueRatio < ruleSettings.thresholdMin) {
+      return {
+        evaluation: this.i18nService.getTranslation({
+          id: 'rule.economicMarketClusterRiskEmergingMarkets.false.min',
+          languageCode: this.getLanguageCode(),
+          placeholders: {
+            emergingMarketsValueRatio: (
+              emergingMarketsValueRatio * 100
+            ).toPrecision(3),
+            thresholdMin: (ruleSettings.thresholdMin * 100).toPrecision(3)
+          }
+        }),
+        value: false
+      };
+    }
+
+    return {
+      evaluation: this.i18nService.getTranslation({
+        id: 'rule.economicMarketClusterRiskEmergingMarkets.true',
+        languageCode: this.getLanguageCode(),
+        placeholders: {
+          emergingMarketsValueRatio: (
+            emergingMarketsValueRatio * 100
+          ).toPrecision(3),
+          thresholdMin: (ruleSettings.thresholdMin * 100).toPrecision(3),
+          thresholdMax: (ruleSettings.thresholdMax * 100).toPrecision(3)
+        }
+      }),
+      value: true
+    };
+  }
+
+  public getConfiguration() {
+    return {
+      threshold: {
+        max: 1,
+        min: 0,
+        step: 0.01,
+        unit: '%'
+      },
+      thresholdMax: true,
+      thresholdMin: true
+    };
+  }
+
+  public getName() {
+    return this.i18nService.getTranslation({
+      id: 'rule.economicMarketClusterRiskEmergingMarkets',
+      languageCode: this.getLanguageCode()
+    });
+  }
+}
+
+interface Settings extends RuleSettings {
+  baseCurrency: string;
+  thresholdMin: number;
+  thresholdMax: number;
+}

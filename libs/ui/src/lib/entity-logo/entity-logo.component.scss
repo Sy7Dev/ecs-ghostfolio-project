@@ -1,0 +1,21 @@
+:host {
+  .logo {
+    border-radius: 0.2rem;
+    height: 0.8rem;
+    width: 0.8rem;
+
+    &.large {
+      height: 1.4rem;
+      width: 1.4rem;
+
+      .emoji {
+        font-size: 1.9rem;
+      }
+    }
+
+    .emoji {
+      font-size: 1.1rem;
+      inset: 0;
+    }
+  }
+}

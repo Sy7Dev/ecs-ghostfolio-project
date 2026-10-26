@@ -1,0 +1,22 @@
+:host {
+  display: block;
+
+  .currency-container,
+  .status-container {
+    flex: 1;
+  }
+
+  .status-container {
+    font-size: 1.33rem;
+
+    ion-icon {
+      pointer-events: all;
+    }
+  }
+
+  .value-container {
+    #value {
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}

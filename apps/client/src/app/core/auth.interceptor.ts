@@ -1,0 +1,69 @@
+import { ImpersonationStorageService } from '@ghostfolio/client/services/impersonation-storage.service';
+import { TokenStorageService } from '@ghostfolio/client/services/token-storage.service';
+import {
+  HEADER_KEY_IMPERSONATION,
+  HEADER_KEY_SKIP_INTERCEPTOR,
+  HEADER_KEY_TIMEZONE,
+  HEADER_KEY_TOKEN
+} from '@ghostfolio/common/config';
+
+import { HTTP_INTERCEPTORS, HttpEvent } from '@angular/common/http';
+import {
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest
+} from '@angular/common/http';
+import { inject, Service } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Service({ autoProvided: false })
+export class AuthInterceptor implements HttpInterceptor {
+  private readonly impersonationStorageService = inject(
+    ImpersonationStorageService
+  );
+  private readonly tokenStorageService = inject(TokenStorageService);
+
+  public intercept<T>(
+    req: HttpRequest<T>,
+    next: HttpHandler
+  ): Observable<HttpEvent<T>> {
+    let request = req;
+
+    if (request.headers.has(HEADER_KEY_SKIP_INTERCEPTOR)) {
+      // Bypass the interceptor
+      request = request.clone({
+        headers: req.headers.delete(HEADER_KEY_SKIP_INTERCEPTOR)
+      });
+
+      return next.handle(request);
+    }
+
+    let headers = request.headers;
+
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (timezone) {
+      headers = headers.set(HEADER_KEY_TIMEZONE, timezone);
+    }
+
+    const token = this.tokenStorageService.getToken();
+
+    if (token !== null) {
+      headers = headers.set(HEADER_KEY_TOKEN, `Bearer ${token}`);
+
+      const impersonationId = this.impersonationStorageService.getId();
+
+      if (impersonationId !== null) {
+        headers = headers.set(HEADER_KEY_IMPERSONATION, impersonationId);
+      }
+    }
+
+    request = request.clone({ headers });
+
+    return next.handle(request);
+  }
+}
+
+export const authInterceptorProviders = [
+  { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+];

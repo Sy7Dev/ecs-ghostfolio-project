@@ -1,0 +1,572 @@
+import {
+  getTooltipOptions,
+  transformTickToAbbreviation
+} from '@ghostfolio/common/chart-helper';
+import { DEFAULT_CURRENCY, primaryColorRgb } from '@ghostfolio/common/config';
+import { formatMonthAndYear, getLocale } from '@ghostfolio/common/helper';
+import { FireCalculationCompleteEvent } from '@ghostfolio/common/interfaces';
+import { ColorScheme } from '@ghostfolio/common/types';
+
+import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  output,
+  SimpleChanges,
+  viewChild
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  FormBuilder,
+  FormControl,
+  FormsModule,
+  ReactiveFormsModule
+} from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import {
+  MatDatepicker,
+  MatDatepickerModule
+} from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { IonIcon } from '@ionic/angular/standalone';
+import {
+  BarController,
+  BarElement,
+  CategoryScale,
+  Chart,
+  type ChartData,
+  type ChartDataset,
+  LinearScale,
+  Tooltip
+} from 'chart.js';
+import 'chartjs-adapter-date-fns';
+import Color from 'color';
+import {
+  add,
+  addDays,
+  addYears,
+  getMonth,
+  parseISO,
+  setMonth,
+  setYear,
+  startOfMonth,
+  sub
+} from 'date-fns';
+import { addIcons } from 'ionicons';
+import { calendarClearOutline } from 'ionicons/icons';
+import { isNumber, isString } from 'lodash-es';
+import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { debounceTime } from 'rxjs';
+
+import { onPrefersColorSchemeChange } from '../chart';
+import { FireCalculatorService } from './fire-calculator.service';
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonIcon,
+    MatButtonModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    NgxSkeletonLoaderModule,
+    ReactiveFormsModule
+  ],
+  providers: [FireCalculatorService],
+  selector: 'gf-fire-calculator',
+  styleUrls: ['./fire-calculator.component.scss'],
+  templateUrl: './fire-calculator.component.html'
+})
+export class GfFireCalculatorComponent implements OnChanges, OnDestroy {
+  @Input() public annualInterestRate?: number = 0;
+  @Input() public colorScheme?: ColorScheme;
+  @Input() public currency?: string;
+  @Input() public deviceType: string;
+  @Input() public fireWealth = 0;
+  @Input() public hasPermissionToUpdateUserSettings: boolean;
+  @Input() public locale?: string = getLocale();
+  @Input() public projectedTotalAmount?: number = 0;
+  @Input() public retirementDate?: Date | string;
+  @Input() public savingsRate?: number = 0;
+
+  public calculatorForm = this.formBuilder.group({
+    annualInterestRate: new FormControl<number | null>(null),
+    paymentPerPeriod: new FormControl<number | null>(null),
+    principalInvestmentAmount: new FormControl<number | null>(null),
+    projectedTotalAmount: new FormControl<number | null>(null),
+    retirementDate: new FormControl<Date | null>(null)
+  });
+
+  public chart?: Chart<'bar'>;
+  public isLoading = true;
+  public minDate = addDays(new Date(), 1);
+  public periodsToRetire = 0;
+
+  protected readonly annualInterestRateChanged = output<number>();
+
+  protected readonly calculationCompleted =
+    output<FireCalculationCompleteEvent>();
+
+  protected readonly projectedTotalAmountChanged = output<number>();
+  protected readonly retirementDateChanged = output<Date>();
+  protected readonly savingsRateChanged = output<number>();
+
+  private readonly CONTRIBUTION_PERIOD = 12;
+
+  private readonly DEFAULT_RETIREMENT_DATE = startOfMonth(
+    addYears(new Date(), 10)
+  );
+
+  private readonly chartCanvas =
+    viewChild.required<ElementRef<HTMLCanvasElement>>('chartCanvas');
+
+  public constructor(
+    private changeDetectorRef: ChangeDetectorRef,
+    private destroyRef: DestroyRef,
+    private fireCalculatorService: FireCalculatorService,
+    private formBuilder: FormBuilder
+  ) {
+    Chart.register(
+      BarController,
+      BarElement,
+      CategoryScale,
+      LinearScale,
+      Tooltip
+    );
+
+    addIcons({ calendarClearOutline });
+
+    onPrefersColorSchemeChange(() => {
+      if (this.chart && !this.colorScheme) {
+        this.chart.destroy();
+        this.chart = undefined;
+
+        this.initialize();
+      }
+    });
+
+    this.calculatorForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.initialize();
+      });
+
+    this.calculatorForm.valueChanges
+      .pipe(debounceTime(500), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const { projectedTotalAmount, retirementDate } =
+          this.calculatorForm.getRawValue();
+
+        if (projectedTotalAmount !== null && retirementDate !== null) {
+          this.calculationCompleted.emit({
+            projectedTotalAmount,
+            retirementDate
+          });
+        }
+      });
+
+    this.calculatorForm
+      .get('annualInterestRate')
+      ?.valueChanges.pipe(
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((annualInterestRate) => {
+        if (annualInterestRate !== null) {
+          this.annualInterestRateChanged.emit(annualInterestRate);
+        }
+      });
+    this.calculatorForm
+      .get('paymentPerPeriod')
+      ?.valueChanges.pipe(
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((savingsRate) => {
+        if (savingsRate !== null) {
+          this.savingsRateChanged.emit(savingsRate);
+        }
+      });
+    this.calculatorForm
+      .get('projectedTotalAmount')
+      ?.valueChanges.pipe(
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((projectedTotalAmount) => {
+        if (projectedTotalAmount !== null) {
+          this.projectedTotalAmountChanged.emit(projectedTotalAmount);
+        }
+      });
+    this.calculatorForm
+      .get('retirementDate')
+      ?.valueChanges.pipe(
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((retirementDate) => {
+        if (retirementDate !== null) {
+          this.retirementDateChanged.emit(retirementDate);
+        }
+      });
+  }
+
+  protected get retirementDateLabel(): string {
+    const retirementDate = this.calculatorForm.get('retirementDate')?.value;
+
+    if (!retirementDate) {
+      return '';
+    }
+
+    return formatMonthAndYear({
+      date: retirementDate,
+      locale: this.locale
+    });
+  }
+
+  public ngOnChanges(changes: SimpleChanges) {
+    if (changes.colorScheme && this.chart) {
+      this.chart.destroy();
+      this.chart = undefined;
+
+      this.initialize();
+    }
+
+    if (isNumber(this.fireWealth) && this.fireWealth >= 0) {
+      this.calculatorForm.setValue(
+        {
+          annualInterestRate: this.annualInterestRate ?? 0,
+          paymentPerPeriod: this.savingsRate ?? 0,
+          principalInvestmentAmount: this.fireWealth,
+          projectedTotalAmount: this.projectedTotalAmount ?? 0,
+          retirementDate: isString(this.retirementDate)
+            ? parseISO(this.retirementDate)
+            : (this.retirementDate ?? this.DEFAULT_RETIREMENT_DATE)
+        },
+        {
+          emitEvent: false
+        }
+      );
+
+      this.periodsToRetire = this.getPeriodsToRetire();
+
+      setTimeout(() => {
+        // Wait for the chartCanvas
+        this.calculatorForm.patchValue(
+          {
+            annualInterestRate:
+              this.calculatorForm.get('annualInterestRate')?.value,
+            paymentPerPeriod: this.getPMT(),
+            principalInvestmentAmount: this.calculatorForm.get(
+              'principalInvestmentAmount'
+            )?.value,
+            projectedTotalAmount:
+              Math.round(this.getProjectedTotalAmount()) || 0,
+            retirementDate:
+              this.getRetirementDate() ?? this.DEFAULT_RETIREMENT_DATE
+          },
+          {
+            emitEvent: false
+          }
+        );
+        this.calculatorForm.get('principalInvestmentAmount')?.disable();
+
+        this.changeDetectorRef.markForCheck();
+      });
+    }
+
+    if (this.hasPermissionToUpdateUserSettings === true) {
+      this.calculatorForm
+        .get('annualInterestRate')
+        ?.enable({ emitEvent: false });
+      this.calculatorForm.get('paymentPerPeriod')?.enable({ emitEvent: false });
+      this.calculatorForm
+        .get('projectedTotalAmount')
+        ?.enable({ emitEvent: false });
+    } else {
+      this.calculatorForm
+        .get('annualInterestRate')
+        ?.disable({ emitEvent: false });
+      this.calculatorForm
+        .get('paymentPerPeriod')
+        ?.disable({ emitEvent: false });
+      this.calculatorForm
+        .get('projectedTotalAmount')
+        ?.disable({ emitEvent: false });
+    }
+
+    this.calculatorForm.get('retirementDate')?.disable({ emitEvent: false });
+  }
+
+  public setMonthAndYear(
+    normalizedMonthAndYear: Date,
+    datepicker: MatDatepicker<Date>
+  ) {
+    const retirementDate =
+      this.calculatorForm.get('retirementDate')?.value ??
+      this.DEFAULT_RETIREMENT_DATE;
+    const newRetirementDate = setMonth(
+      setYear(retirementDate, normalizedMonthAndYear.getFullYear()),
+      normalizedMonthAndYear.getMonth()
+    );
+    this.calculatorForm.get('retirementDate')?.setValue(newRetirementDate);
+    datepicker.close();
+  }
+
+  public ngOnDestroy() {
+    this.chart?.destroy();
+  }
+
+  private initialize() {
+    this.isLoading = true;
+
+    const chartData = this.getChartData();
+
+    if (this.chartCanvas()) {
+      if (this.chart) {
+        this.chart.data.labels = chartData.labels;
+
+        for (let index = 0; index < this.chart.data.datasets.length; index++) {
+          this.chart.data.datasets[index].data = chartData.datasets[index].data;
+        }
+
+        this.chart.update();
+      } else {
+        this.chart = new Chart<'bar'>(this.chartCanvas().nativeElement, {
+          data: chartData,
+          options: {
+            plugins: {
+              tooltip: {
+                ...getTooltipOptions({ colorScheme: this.colorScheme }),
+                mode: 'index',
+                callbacks: {
+                  footer: (items) => {
+                    const totalAmount = items.reduce(
+                      (a, b) => a + (b.parsed.y ?? 0),
+                      0
+                    );
+
+                    return `Total: ${new Intl.NumberFormat(this.locale, {
+                      currency: this.currency ?? DEFAULT_CURRENCY,
+                      currencyDisplay: 'code',
+                      style: 'currency',
+                      useGrouping: true
+                    }).format(totalAmount)}`;
+                  },
+                  label: (context) => {
+                    let label = context.dataset.label ?? '';
+
+                    if (label) {
+                      label += ': ';
+                    }
+
+                    if (context.parsed.y !== null) {
+                      label += new Intl.NumberFormat(this.locale, {
+                        currency: this.currency ?? DEFAULT_CURRENCY,
+                        currencyDisplay: 'code',
+                        style: 'currency',
+                        useGrouping: true
+                      }).format(context.parsed.y);
+                    }
+
+                    return label;
+                  }
+                }
+              }
+            },
+            responsive: true,
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                },
+                stacked: true
+              },
+              y: {
+                display: this.deviceType !== 'mobile',
+                grid: {
+                  display: false
+                },
+                position: 'right',
+                stacked: true,
+                ticks: {
+                  callback: (value: number) => {
+                    return transformTickToAbbreviation(value);
+                  }
+                }
+              }
+            }
+          },
+          type: 'bar'
+        });
+      }
+    }
+
+    this.isLoading = false;
+  }
+
+  private getChartData(): ChartData<'bar'> {
+    const currentYear = new Date().getFullYear();
+    const labels: number[] = [];
+
+    // Principal investment amount
+    const P: number = this.getP();
+
+    // Payment per period
+    const PMT = this.getPMT();
+
+    // Annual interest rate
+    const r: number = this.getR();
+
+    // Calculate retirement date
+    // if we want to retire at month x, we need the projectedTotalAmount at month x-1
+    const lastPeriodDate = sub(this.getRetirementDate(), { months: 1 });
+    const yearsToRetire = lastPeriodDate.getFullYear() - currentYear;
+
+    // Time
+    // +1 to take into account the current year
+    const t = yearsToRetire + 1;
+
+    for (let year = currentYear; year < currentYear + t; year++) {
+      labels.push(year);
+    }
+
+    const datasetDeposit: ChartDataset<'bar'> = {
+      backgroundColor: `rgb(${primaryColorRgb.r}, ${primaryColorRgb.g}, ${primaryColorRgb.b})`,
+      data: [],
+      label: $localize`Deposit`
+    };
+
+    const datasetInterest: ChartDataset<'bar'> = {
+      backgroundColor: Color(
+        `rgb(${primaryColorRgb.r}, ${primaryColorRgb.g}, ${primaryColorRgb.b})`
+      )
+        .lighten(0.5)
+        .hex(),
+      data: [],
+      label: $localize`Interest`
+    };
+
+    const datasetSavings: ChartDataset<'bar'> = {
+      backgroundColor: Color(
+        `rgb(${primaryColorRgb.r}, ${primaryColorRgb.g}, ${primaryColorRgb.b})`
+      )
+        .lighten(0.25)
+        .hex(),
+      data: [],
+      label: $localize`Savings`
+    };
+
+    const monthsPassedInCurrentYear = getMonth(new Date());
+
+    for (let period = 1; period <= t; period++) {
+      const periodInMonths =
+        period * this.CONTRIBUTION_PERIOD - monthsPassedInCurrentYear;
+      const { interest, principal } =
+        this.fireCalculatorService.calculateCompoundInterest({
+          P,
+          periodInMonths,
+          PMT,
+          r
+        });
+
+      datasetDeposit.data.push(this.fireWealth);
+      datasetInterest.data.push(interest.toNumber());
+      datasetSavings.data.push(principal.minus(this.fireWealth).toNumber());
+    }
+
+    return {
+      labels,
+      datasets: [datasetDeposit, datasetSavings, datasetInterest]
+    };
+  }
+
+  private getP() {
+    return this.fireWealth || 0;
+  }
+
+  private getPeriodsToRetire(): number {
+    const projectedTotalAmount = this.calculatorForm.get(
+      'projectedTotalAmount'
+    )?.value;
+
+    if (projectedTotalAmount) {
+      let periods = this.fireCalculatorService.calculatePeriodsToRetire({
+        P: this.getP(),
+        PMT: this.getPMT(),
+        r: this.getR(),
+        totalAmount: projectedTotalAmount
+      });
+
+      if (periods === Infinity) {
+        periods = Number.MAX_SAFE_INTEGER;
+      }
+
+      return periods;
+    } else {
+      const today = new Date();
+      const retirementDate =
+        this.calculatorForm.get('retirementDate')?.value ??
+        this.DEFAULT_RETIREMENT_DATE;
+
+      return (
+        12 * (retirementDate.getFullYear() - today.getFullYear()) +
+        retirementDate.getMonth() -
+        today.getMonth()
+      );
+    }
+  }
+
+  private getPMT() {
+    return this.calculatorForm.get('paymentPerPeriod')?.value ?? 0;
+  }
+
+  private getProjectedTotalAmount() {
+    const projectedTotalAmount = this.calculatorForm.get(
+      'projectedTotalAmount'
+    )?.value;
+
+    if (projectedTotalAmount) {
+      return projectedTotalAmount;
+    }
+
+    const { totalAmount } =
+      this.fireCalculatorService.calculateCompoundInterest({
+        P: this.getP(),
+        periodInMonths: this.periodsToRetire,
+        PMT: this.getPMT(),
+        r: this.getR()
+      });
+
+    return totalAmount.toNumber();
+  }
+
+  private getR() {
+    return (this.calculatorForm.get('annualInterestRate')?.value ?? 0) / 100;
+  }
+
+  private getRetirementDate(): Date {
+    if (this.periodsToRetire === Number.MAX_SAFE_INTEGER) {
+      return this.DEFAULT_RETIREMENT_DATE;
+    }
+
+    const monthsToRetire = this.periodsToRetire % 12;
+    const yearsToRetire = Math.floor(this.periodsToRetire / 12);
+
+    return startOfMonth(
+      add(new Date(), {
+        months: monthsToRetire,
+        years: yearsToRetire
+      })
+    );
+  }
+}

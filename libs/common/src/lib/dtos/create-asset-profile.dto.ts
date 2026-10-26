@@ -1,0 +1,111 @@
+import {
+  COMMENT_MAXIMUM_LENGTH,
+  SYMBOL_MAXIMUM_LENGTH
+} from '@ghostfolio/common/config';
+import { IsCurrencyCode } from '@ghostfolio/common/validators/is-currency-code';
+import type { Prisma } from '@ghostfolio/prisma/browser';
+import {
+  AssetClass,
+  AssetSubClass,
+  DataSource
+} from '@ghostfolio/prisma/enums';
+
+import { Transform, TransformFnParams, Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  ValidateNested
+} from 'class-validator';
+import { isString } from 'lodash-es';
+
+import { CountryDto } from './country.dto';
+import { HoldingDto } from './holding.dto';
+import { SectorDto } from './sector.dto';
+
+export class CreateAssetProfileDto {
+  @IsEnum(AssetClass)
+  @IsOptional()
+  assetClass?: AssetClass;
+
+  @IsEnum(AssetSubClass)
+  @IsOptional()
+  assetSubClass?: AssetSubClass;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(COMMENT_MAXIMUM_LENGTH)
+  comment?: string;
+
+  @IsArray()
+  @IsOptional()
+  @Type(() => CountryDto)
+  @ValidateNested({ each: true })
+  countries?: Prisma.InputJsonArray;
+
+  @IsCurrencyCode()
+  currency: string;
+
+  @IsOptional()
+  @IsString()
+  cusip?: string;
+
+  @IsEnum(DataSource)
+  dataSource: DataSource;
+
+  @IsOptional()
+  @IsString()
+  figi?: string;
+
+  @IsOptional()
+  @IsString()
+  figiComposite?: string;
+
+  @IsOptional()
+  @IsString()
+  figiShareClass?: string;
+
+  @IsArray()
+  @IsOptional()
+  @Type(() => HoldingDto)
+  @ValidateNested({ each: true })
+  holdings?: Prisma.InputJsonArray;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  isin?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsArray()
+  @IsOptional()
+  @Type(() => SectorDto)
+  @ValidateNested({ each: true })
+  sectors?: Prisma.InputJsonArray;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(SYMBOL_MAXIMUM_LENGTH)
+  @Transform(({ value }: TransformFnParams) =>
+    isString(value) ? value.trim() : value
+  )
+  symbol: string;
+
+  @IsOptional()
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true
+  })
+  url?: string;
+}

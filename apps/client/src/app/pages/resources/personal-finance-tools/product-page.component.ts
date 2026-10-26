@@ -1,0 +1,190 @@
+import { getCountryName, getEmojiFlag } from '@ghostfolio/common/helper';
+import { Product } from '@ghostfolio/common/interfaces';
+import { personalFinanceTools } from '@ghostfolio/common/personal-finance-tools';
+import { publicRoutes } from '@ghostfolio/common/routes/routes';
+import { translate } from '@ghostfolio/ui/i18n';
+import { DataService } from '@ghostfolio/ui/services';
+
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject
+} from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+
+import { ResolvedProduct, ResolvedRegion } from './interfaces/interfaces';
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'page' },
+  imports: [MatButtonModule, RouterModule],
+  selector: 'gf-product-page',
+  styleUrls: ['./product-page.scss'],
+  templateUrl: './product-page.html'
+})
+export class GfProductPageComponent {
+  protected readonly price = computed(() => {
+    const { subscriptionOffer } = this.dataService.fetchInfo();
+    return subscriptionOffer?.price;
+  });
+
+  protected readonly product1 = computed<ResolvedProduct>(() => ({
+    categories: this.getSortedTranslations([
+      'FINANCIAL_PLANNING',
+      'NET_WORTH_TRACKING',
+      'STOCK_TRACKING'
+    ]),
+    founded: 2021,
+    hasFreePlan: true,
+    hasSelfHostingAbility: true,
+    isOpenSource: true,
+    key: 'ghostfolio',
+    languages: [
+      // 'Català',
+      'Chinese (简体中文)',
+      'Deutsch',
+      'English',
+      'Español',
+      'Français',
+      'Italiano',
+      // 'Japanese (日本語)',
+      'Korean (한국어)',
+      'Nederlands',
+      'Polski',
+      'Português',
+      'Türkçe'
+      // 'Ukrainian (Українська)'
+    ],
+    name: 'Ghostfolio',
+    origin: this.getResolvedCountry('CH'),
+    platforms: this.getSortedTranslations(['ANDROID', 'WEB']),
+    regions: [{ name: $localize`Global` }],
+    slogan: 'Open Source Wealth Management',
+    useAnonymously: true
+  }));
+
+  protected readonly product2 = computed<ResolvedProduct>(() => {
+    const product = personalFinanceTools.find(({ key }) => {
+      return key === this.route.snapshot.data['key'];
+    });
+
+    const mappedProduct: ResolvedProduct = {
+      key: product?.key ?? '',
+      name: product?.name ?? '',
+      ...product,
+      categories: this.getSortedTranslations(product?.categories),
+      origin: product?.origin
+        ? this.getResolvedCountry(product.origin)
+        : undefined,
+      platforms: this.getSortedTranslations(product?.platforms),
+      regions: product?.regions?.map((region) => {
+        return region === 'Global'
+          ? { name: translate(region) }
+          : this.getResolvedCountry(region);
+      })
+    };
+
+    return mappedProduct;
+  });
+
+  protected readonly routerLinkAbout = publicRoutes.about.routerLink;
+  protected readonly routerLinkFeatures = publicRoutes.features.routerLink;
+
+  protected readonly routerLinkResourcesPersonalFinanceTools =
+    publicRoutes.resources.subRoutes.personalFinanceTools.routerLink;
+
+  protected readonly titlePrefix = $localize`The Open Source Alternative to`;
+
+  protected readonly nextProduct = computed(() => {
+    return personalFinanceTools[this.getCurrentProductIndex() + 1];
+  });
+
+  protected readonly previousProduct = computed(() => {
+    return personalFinanceTools[this.getCurrentProductIndex() - 1];
+  });
+
+  protected readonly tags = computed<string[]>(() => {
+    const product1 = this.product1();
+    const product2 = this.product2();
+
+    return Array.from(
+      new Set(
+        [
+          ...[product1, product2].flatMap(
+            ({ categories, name, origin, platforms }) => {
+              return [
+                ...(categories ?? []),
+                ...(platforms ?? []),
+                name,
+                origin?.name
+              ];
+            }
+          ),
+          $localize`Alternative`,
+          $localize`App`,
+          $localize`Community`,
+          `Fintech`,
+          $localize`Investment`,
+          $localize`Investor`,
+          $localize`Open Source`,
+          `OSS`,
+          $localize`Personal Finance`,
+          $localize`Portfolio`,
+          $localize`Privacy`,
+          $localize`Software`,
+          $localize`Tool`,
+          $localize`User Experience`,
+          $localize`Wealth`,
+          `WealthTech`
+        ].filter((item): item is string => {
+          return !!item;
+        })
+      )
+    ).sort((a, b) => {
+      return a.localeCompare(b, undefined, { sensitivity: 'base' });
+    });
+  });
+
+  private readonly dataService = inject(DataService);
+  private readonly route = inject(ActivatedRoute);
+
+  protected getProductRouterLink(product?: Product) {
+    if (!product) {
+      return this.routerLinkResourcesPersonalFinanceTools;
+    }
+
+    return [
+      ...this.routerLinkResourcesPersonalFinanceTools,
+      `${publicRoutes.resources.subRoutes.personalFinanceTools.subRoutes.product.path}-${product.alias ?? product.key}`
+    ];
+  }
+
+  protected getProductTitle(product?: Product) {
+    return `Ghostfolio: ${this.titlePrefix} ${product?.name ?? ''}`;
+  }
+
+  private getCurrentProductIndex() {
+    return personalFinanceTools.findIndex(({ key }) => {
+      return key === this.product2().key;
+    });
+  }
+
+  private getResolvedCountry(code: string): ResolvedRegion {
+    return {
+      emojiFlag: getEmojiFlag(code),
+      name: getCountryName({ code })
+    };
+  }
+
+  private getSortedTranslations(values?: string[]) {
+    return values
+      ?.map((value) => {
+        return translate(value);
+      })
+      .sort((a, b) => {
+        return a.localeCompare(b, undefined, { sensitivity: 'base' });
+      });
+  }
+}

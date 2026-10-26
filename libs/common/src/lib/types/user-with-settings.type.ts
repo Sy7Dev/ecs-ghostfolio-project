@@ -1,0 +1,18 @@
+import { SubscriptionType } from '@ghostfolio/common/enums';
+import { SubscriptionOffer, UserSettings } from '@ghostfolio/common/interfaces';
+import type { Account, Settings, User } from '@ghostfolio/prisma/browser';
+
+// TODO: Compare with User interface
+export type UserWithSettings = User & {
+  accounts: Account[];
+  activitiesCount: number;
+  dataProviderGhostfolioDailyRequests: number;
+  permissions?: string[];
+  settings: Settings & { settings: UserSettings };
+  subscription?: {
+    expiresAt?: Date;
+    offer: SubscriptionOffer;
+    subscribedAt?: Date;
+    type: SubscriptionType;
+  };
+};

@@ -1,0 +1,22 @@
+import { EnhancedAssetProfile } from '@ghostfolio/common/interfaces';
+import { AccountWithPlatform } from '@ghostfolio/common/types';
+import type { Order, Tag } from '@ghostfolio/prisma/browser';
+
+export interface Activity extends Order {
+  account?: AccountWithPlatform;
+  assetProfile: EnhancedAssetProfile;
+  error?: ActivityError;
+  feeInAssetProfileCurrency: number;
+  feeInBaseCurrency: number;
+  tagIds?: string[];
+  tags?: Tag[];
+  unitPriceInAssetProfileCurrency: number;
+  updateAccountBalance?: boolean;
+  value: number;
+  valueInBaseCurrency: number;
+}
+
+export interface ActivityError {
+  code: 'IS_DUPLICATE';
+  message?: string;
+}
