@@ -60,3 +60,10 @@ Thumbs.db
 .nx/
 node_modules/
 coverage/
+*.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+
+state-backup-*.json
