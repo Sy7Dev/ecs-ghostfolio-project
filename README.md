@@ -1,11 +1,11 @@
 # Ghostfolio on AWS ECS Fargate
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=aws,terraform,docker,githubactions,postgres,redis&theme=light" alt="Technologies used: AWS, Terraform, Docker, GitHub Actions, PostgreSQL and Redis" />
+  <img src="https://skillicons.dev/icons?i=aws,terraform,docker,githubactions,postgres,redis&theme=light" alt="AWS, Terraform, Docker, GitHub Actions, PostgreSQL and Redis" />
 </p>
 
 <p align="center">
-  <img src="assets/architecture.png" alt="Ghostfolio AWS architecture diagram" width="100%" />
+  <img src="assets/ghostfolio-project-architecture-diagram.jpeg" alt="Ghostfolio AWS Architecture" width="100%" />
 </p>
 
 <p align="center">
@@ -38,7 +38,7 @@ The goal was to take an existing application and build the cloud infrastructure 
 
 I used Docker to package the application, Terraform to define the AWS infrastructure, and GitHub Actions to automate the deployment process.
 
-The application was designed to run on **Amazon ECS with Fargate**, using PostgreSQL for database storage and Redis for caching.
+The application was designed to run on **Amazon ECS using Fargate**, with PostgreSQL for database storage and Redis for caching.
 
 This project gave me practical experience working with containerisation, cloud infrastructure, networking, IAM permissions and CI/CD.
 
@@ -49,6 +49,10 @@ This project gave me practical experience working with containerisation, cloud i
 The application was configured to use a custom subdomain, with DNS managed through Fasthosts.
 
 HTTPS was handled using AWS Certificate Manager and an Application Load Balancer.
+
+<p align="center">
+  <img src="assets/Domain.png" alt="Ghostfolio custom domain configuration" width="100%" />
+</p>
 
 ## 3. Architecture Overview
 
@@ -123,19 +127,68 @@ ecs-ghostfolio-project/
 
 ## 6. Key Components
 
+### Amazon ECS and Fargate
+
+ECS manages the application containers, while Fargate provides the compute capacity to run them without managing EC2 instances.
+
+<p align="center">
+  <img src="assets/ECS.png" alt="Amazon ECS configuration" width="100%" />
+</p>
+
+### Running Containers
+
+The ECS task was designed to run three containers:
+
+- Ghostfolio
+- PostgreSQL
+- Redis
+
+<p align="center">
+  <img src="assets/Running tasks.png" alt="ECS running tasks and containers" width="100%" />
+</p>
+
+### Amazon ECR
+
+Amazon Elastic Container Registry stores the Docker images used by the ECS deployment.
+
+<p align="center">
+  <img src="assets/ECR.png" alt="Amazon ECR repository" width="100%" />
+</p>
+
+### Application Load Balancer
+
+The Application Load Balancer provides an entry point for incoming application traffic and handles HTTPS connections.
+
+<p align="center">
+  <img src="assets/LoadBalancers.png" alt="AWS Application Load Balancer" width="100%" />
+</p>
+
+### Target Group
+
+The target group connects the load balancer to the application running inside ECS.
+
+<p align="center">
+  <img src="assets/TargetGroup.png" alt="AWS target group configuration" width="100%" />
+</p>
+
+### Terraform
+
+Terraform was used to define and provision the AWS infrastructure.
+
+<p align="center">
+  <img src="assets/Terraform.png" alt="Terraform infrastructure configuration" width="100%" />
+</p>
+
+### Other Technologies
+
 | Component | Role in the project |
 |---|---|
-| **AWS ECS** | Manages and runs the application containers |
-| **AWS Fargate** | Provides the compute capacity for the ECS task |
-| **Amazon ECR** | Stores Docker images ready for deployment |
-| **Application Load Balancer** | Receives incoming traffic and forwards it to Ghostfolio |
 | **AWS Certificate Manager** | Provides the SSL/TLS certificate for HTTPS |
 | **AWS IAM** | Controls permissions for AWS services and GitHub Actions |
 | **GitHub OIDC** | Allows GitHub Actions to authenticate with AWS without storing long-lived AWS access keys |
-| **Terraform** | Defines and manages the AWS infrastructure |
-| **Docker Buildx** | Builds the application image for the ARM64 architecture |
+| **Docker Buildx** | Builds the application image for ARM64 |
 | **PostgreSQL** | Stores application data |
-| **Redis** | Provides caching for the application |
+| **Redis** | Provides caching |
 | **Fasthosts** | Manages the project's custom domain and DNS records |
 
 ## 7. Cost and Availability Decisions
@@ -148,7 +201,7 @@ Fargate was chosen so that I could run containers without provisioning or mainta
 
 It also allowed the application to be deployed using a defined ECS task configuration.
 
-### ARM64 architecture
+### ARM64 Architecture
 
 The Docker image was built for Linux ARM64. This allowed the deployment to target ARM-based compute rather than relying on an x86-only image.
 
@@ -158,7 +211,7 @@ The Application Load Balancer provided a single entry point for incoming applica
 
 It also separated public access from the application containers.
 
-### Resource management
+### Resource Management
 
 The application, database and Redis were designed to run as containers within an ECS task. This kept the initial deployment architecture relatively straightforward.
 
@@ -168,11 +221,11 @@ The trade-off is that running multiple containers in one task means they share t
 
 The deployment process is handled by a GitHub Actions workflow located at:
 
-` .github/workflows/deploy-aws.yml `
+`.github/workflows/deploy-aws.yml`
 
 The workflow is manually triggered using `workflow_dispatch`.
 
-### Deployment steps
+### Deployment Steps
 
 | Step | Action |
 |---|---|
@@ -185,13 +238,13 @@ The workflow is manually triggered using `workflow_dispatch`.
 | 7. Deploy | Deploy the updated task definition to the ECS service |
 | 8. Wait | Wait for the ECS service to reach a stable state |
 
-### Why use GitHub OIDC?
+### Why Use GitHub OIDC?
 
 Instead of storing permanent AWS access keys as GitHub secrets, OIDC allows GitHub Actions to assume an IAM role.
 
-This keeps authentication tied to the configured IAM trust relationship and avoids maintaining long-lived credentials.
+This avoids maintaining long-lived credentials and uses an IAM trust relationship to control access.
 
-### Deployment workflow
+### Deployment Workflow
 
 ```text
 Developer
@@ -262,12 +315,3 @@ There are several areas where the project could be extended:
 - **Environment separation:** Introduce separate development and production environments.
 - **Automated deployments:** Consider triggering deployments automatically when changes are merged into the main branch.
 
----
-
-## Acknowledgements
-
-Ghostfolio is an open-source project. This repository uses the Ghostfolio application as the foundation for the AWS deployment and DevOps work.
-
-- [Ghostfolio GitHub Repository](https://github.com/ghostfolio/ghostfolio)
-- [AWS Documentation](https://docs.aws.amazon.com/)
-- [Terraform Documentation](https://developer.hashicorp.com/terraform/docs)
