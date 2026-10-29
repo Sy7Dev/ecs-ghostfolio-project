@@ -1,20 +1,17 @@
 # Ghostfolio on AWS ECS Fargate
 
-### Tech Stack
-
 <p align="center">
   <img src="https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS" />
   <img src="https://img.shields.io/badge/ECS_Fargate-FF9900?style=flat-square&logo=amazonecs&logoColor=white" alt="Amazon ECS Fargate" />
-  <img src="https://img.shields.io/badge/ECR-FF9900?style=flat-square&logo=amazonecr&logoColor=white" alt="Amazon ECR" />
   <img src="https://img.shields.io/badge/Terraform-844FBA?style=flat-square&logo=terraform&logoColor=white" alt="Terraform" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions" />
-  <img src="https://img.shields.io/badge/AWS_IAM_%2B_OIDC-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS IAM and OIDC" />
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/ALB_%7C_TLS-527FFF?style=flat-square&logo=awselasticloadbalancing&logoColor=white" alt="Application Load Balancer and TLS" />
-  <img src="https://img.shields.io/badge/ARM64-0091BD?style=flat-square" alt="ARM64" />
   <img src="https://img.shields.io/badge/Custom_DNS-555555?style=flat-square" alt="Custom DNS" />
+  <img src="https://img.shields.io/badge/ARM64-0091BD?style=flat-square" alt="ARM64" />
+  
+  
 </p>
 
 
