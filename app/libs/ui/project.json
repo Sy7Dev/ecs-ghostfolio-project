@@ -2,7 +2,7 @@
   "name": "ui",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "libs/ui/src",
+  "sourceRoot": "app/libs/ui/src",
   "prefix": "gf",
   "tags": [],
   "generators": {
@@ -15,14 +15,14 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/ui"],
       "options": {
-        "jestConfig": "libs/ui/jest.config.ts",
-        "tsConfig": "libs/ui/tsconfig.spec.json"
+        "jestConfig": "app/libs/ui/jest.config.ts",
+        "tsConfig": "app/libs/ui/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["libs/ui/src/**/*.ts", "libs/ui/src/**/*.html"]
+        "lintFilePatterns": ["app/libs/ui/src/**/*.ts", "app/libs/ui/src/**/*.html"]
       }
     },
     "storybook": {
@@ -30,7 +30,7 @@
       "options": {
         "browserTarget": "ui:build-storybook",
         "compodoc": false,
-        "configDir": "libs/ui/.storybook",
+        "configDir": "app/libs/ui/.storybook",
         "port": 4400
       },
       "configurations": {
@@ -45,12 +45,12 @@
       "options": {
         "browserTarget": "ui:build-storybook",
         "compodoc": false,
-        "configDir": "libs/ui/.storybook",
+        "configDir": "app/libs/ui/.storybook",
         "outputDir": "dist/apps/client/development/storybook",
         "styles": [
-          "apps/client/src/assets/fonts/inter.css",
-          "apps/client/src/styles/theme.scss",
-          "apps/client/src/styles.scss"
+          "app/apps/client/src/assets/fonts/inter.css",
+          "app/apps/client/src/styles/theme.scss",
+          "app/apps/client/src/styles.scss"
         ]
       },
       "configurations": {

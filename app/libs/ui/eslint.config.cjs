@@ -1,4 +1,4 @@
-const baseConfig = require('../../eslint.config.cjs');
+const baseConfig = require('../../../eslint.config.cjs');
 const angularEslintPlugin = require('@angular-eslint/eslint-plugin');
 const angularTemplateEslintPlugin = require('@angular-eslint/eslint-plugin-template');
 const angularTemplateParser = require('@angular-eslint/template-parser');

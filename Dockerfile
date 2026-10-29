@@ -5,21 +5,21 @@ WORKDIR /ghostfolio
 
 # Only add basic files without the application itself to avoid rebuilding
 # layers when files (package.json etc.) have not changed
-COPY ./.config .config/
+COPY ./app/.config .config/
 COPY ./CHANGELOG.md CHANGELOG.md
 COPY ./LICENSE LICENSE
 COPY ./package.json package.json
 COPY ./package-lock.json package-lock.json
-COPY ./prisma/schema.prisma prisma/
+COPY ./app/prisma/schema.prisma prisma/
 
 RUN npm ci
 
-COPY ./apps apps/
-COPY ./libs libs/
+COPY ./app/apps apps/
+COPY ./app/libs libs/
 COPY ./jest.config.ts jest.config.ts
 COPY ./jest.preset.js jest.preset.js
 COPY ./nx.json nx.json
-COPY ./replace.build.mjs replace.build.mjs
+COPY ./app/tools/replace.build.mjs replace.build.mjs
 COPY ./tsconfig.base.json tsconfig.base.json
 
 ENV NX_DAEMON=false
@@ -32,8 +32,8 @@ WORKDIR /ghostfolio/dist/apps/api
 COPY ./package-lock.json /ghostfolio/dist/apps/api/
 
 RUN npm ci
-COPY .config /ghostfolio/dist/apps/api/.config/
-COPY prisma /ghostfolio/dist/apps/api/prisma/
+COPY ./app/.config /ghostfolio/dist/apps/api/.config/
+COPY ./app/prisma /ghostfolio/dist/apps/api/prisma/
 
 # Overwrite the generated package.json with the original one to ensure having
 # all the scripts
