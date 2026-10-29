@@ -19,9 +19,7 @@
   <img src="assets/ghostfolio-project-architecture-diagram.jpeg" alt="Ghostfolio AWS Architecture" width="100%" />
 </p>
 
-<p align="center">
-  <strong>Deploying an open-source portfolio tracking application to AWS using Docker, ECS Fargate, Terraform and GitHub Actions.</strong>
-</p>
+
 
 ---
 
