@@ -10,16 +10,11 @@
   <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
   <img src="https://img.shields.io/badge/Custom_DNS-555555?style=flat-square" alt="Custom DNS" />
   <img src="https://img.shields.io/badge/ARM64-0091BD?style=flat-square" alt="ARM64" />
-  
-  
 </p>
-
 
 <p align="center">
-  <img src="assets/ghostfolio-project-architecture-diagram.jpeg" alt="Ghostfolio AWS Architecture" width="100%" />
+  <img src="assets/ghostfolio-project-architecture-diagram.jpeg" alt="Ghostfolio AWS architecture diagram" width="100%" />
 </p>
-
-
 
 ---
 
@@ -49,7 +44,7 @@ I used Docker to package the application, Terraform to define the AWS infrastruc
 
 The application was designed to run on **Amazon ECS using Fargate**, with PostgreSQL for database storage and Redis for caching.
 
-This project gave me practical experience working with containerisation, cloud infrastructure, networking, IAM permissions and CI/CD.
+The project brought together containerisation, cloud infrastructure, networking, IAM permissions and CI/CD in a practical deployment scenario.
 
 ## 2. Application URL
 
@@ -57,7 +52,7 @@ This project gave me practical experience working with containerisation, cloud i
 
 The application was configured to use a custom subdomain, with DNS managed through Fasthosts.
 
-HTTPS was handled using AWS Certificate Manager and an Application Load Balancer.
+HTTPS was configured using AWS Certificate Manager and an Application Load Balancer.
 
 <p align="center">
   <img src="assets/Domain.png" alt="Ghostfolio custom domain configuration" width="100%" />
@@ -81,64 +76,77 @@ The architecture is built around two main flows: application traffic and the dep
 2. GitHub Actions authenticates with AWS using OpenID Connect (OIDC).
 3. Docker Buildx builds the application image for Linux ARM64.
 4. The image is tagged and pushed to Amazon ECR.
-5. GitHub Actions retrieves the current ECS task definition and updates it with the new image.
+5. GitHub Actions retrieves the existing ECS task definition and updates it with the new image.
 6. ECS deploys the updated task definition.
 
-The architecture diagram above illustrates how these services fit together.
+The architecture diagram illustrates how the AWS services, application containers and deployment workflow fit together.
 
 ## 4. Features
 
 - **Containerised application:** Ghostfolio is packaged into a Docker image.
-- **AWS ECS Fargate:** Runs the application without managing EC2 instances.
+- **AWS ECS Fargate:** Runs the application without requiring direct EC2 instance management.
 - **Container registry:** Amazon ECR stores the built Docker images.
 - **Database and caching:** PostgreSQL and Redis run alongside Ghostfolio in the ECS task.
 - **HTTPS access:** An Application Load Balancer and AWS Certificate Manager handle secure incoming traffic.
 - **Infrastructure as Code:** Terraform defines the AWS infrastructure.
 - **Automated deployment:** GitHub Actions builds and deploys updated application images.
 - **AWS authentication:** GitHub Actions uses OIDC to authenticate with AWS.
+- **ARM64 support:** Docker Buildx builds the application image for ARM64 compute.
 
 ## 5. Repository Structure
 
-The repository contains the Ghostfolio application, Docker configuration, Terraform infrastructure and GitHub Actions workflow.
+The repository separates application source code, infrastructure, deployment configuration and supporting documentation.
 
 ```text
 ecs-ghostfolio-project/
+│
+├── app/
+│   ├── .config/
+│   ├── apps/
+│   ├── libs/
+│   ├── prisma/
+│   ├── test/
+│   └── tools/
+│
+├── assets/
+├── docker/
+├── terraform/
 │
 ├── .github/
 │   └── workflows/
 │       └── deploy-aws.yml
 │
-├── .config/
-├── apps/
-├── docker/
-├── libs/
-├── prisma/
-├── terraform/
-├── tools/
-│
 ├── Dockerfile
 ├── compose.yaml
+├── nx.json
 ├── package.json
+├── package-lock.json
 └── README.md
 ```
 
 | Directory / File | Purpose |
 |---|---|
+| `app/` | Groups the application source code and supporting application files |
+| `app/apps/` | Contains the application projects |
+| `app/libs/` | Contains shared application libraries |
+| `app/.config/` | Contains application-related configuration |
+| `app/prisma/` | Contains the Prisma schema and database migrations |
+| `app/test/` | Contains application tests and supporting test files |
+| `app/tools/` | Contains application tooling and supporting scripts |
+| `assets/` | Stores project screenshots and architecture diagrams |
 | `.github/workflows/` | Contains the GitHub Actions deployment workflow |
-| `apps/` | Ghostfolio application code |
-| `docker/` | Docker-related configuration and scripts |
-| `libs/` | Shared application libraries |
-| `prisma/` | Database schema and Prisma configuration |
-| `terraform/` | AWS infrastructure configuration |
-| `tools/` | Project tooling and supporting scripts |
-| `Dockerfile` | Builds the Ghostfolio container image |
-| `compose.yaml` | Local multi-container development setup |
+| `docker/` | Contains Docker-related scripts and configuration |
+| `terraform/` | Contains AWS infrastructure configuration |
+| `Dockerfile` | Defines the application container image build |
+| `compose.yaml` | Defines the local multi-container setup |
+| `nx.json` | Configures the Nx workspace |
+| `package.json` | Defines project dependencies and npm scripts |
 
 ## 6. Key Components
 
 ### Amazon ECS and Fargate
 
-ECS manages the application containers, while Fargate provides the compute capacity to run them without managing EC2 instances.
+ECS manages the application containers, while Fargate provides the compute capacity to run them without directly managing EC2 instances.
 
 <p align="center">
   <img src="assets/ECS.png" alt="Amazon ECS configuration" width="100%" />
@@ -152,6 +160,8 @@ The ECS task was designed to run three containers:
 - PostgreSQL
 - Redis
 
+Keeping these containers within the same ECS task provided a straightforward deployment structure for the project.
+
 <p align="center">
   <img src="assets/Running tasks.png" alt="ECS running tasks and containers" width="100%" />
 </p>
@@ -160,6 +170,8 @@ The ECS task was designed to run three containers:
 
 Amazon Elastic Container Registry stores the Docker images used by the ECS deployment.
 
+The GitHub Actions workflow pushes the built image to ECR before updating the ECS task definition.
+
 <p align="center">
   <img src="assets/ECR.png" alt="Amazon ECR repository" width="100%" />
 </p>
@@ -167,6 +179,8 @@ Amazon Elastic Container Registry stores the Docker images used by the ECS deplo
 ### Application Load Balancer
 
 The Application Load Balancer provides an entry point for incoming application traffic and handles HTTPS connections.
+
+It forwards traffic to the application through its configured target group.
 
 <p align="center">
   <img src="assets/LoadBalancers.png" alt="AWS Application Load Balancer" width="100%" />
@@ -183,6 +197,8 @@ The target group connects the load balancer to the application running inside EC
 ### Terraform
 
 Terraform was used to define and provision the AWS infrastructure.
+
+Managing infrastructure as code made the configuration easier to organise, review and reproduce.
 
 <p align="center">
   <img src="assets/Terraform.png" alt="Terraform infrastructure configuration" width="100%" />
@@ -202,17 +218,19 @@ Terraform was used to define and provision the AWS infrastructure.
 
 ## 7. Cost and Availability Decisions
 
-A key consideration when designing the infrastructure was choosing services that reduced the amount of server management required.
+A key consideration when designing the infrastructure was choosing services that reduced server management while keeping the deployment straightforward.
 
 ### AWS Fargate
 
-Fargate was chosen so that I could run containers without provisioning or maintaining EC2 instances.
+Fargate was chosen to run containers without provisioning or maintaining EC2 instances.
 
 It also allowed the application to be deployed using a defined ECS task configuration.
 
 ### ARM64 Architecture
 
-The Docker image was built for Linux ARM64. This allowed the deployment to target ARM-based compute rather than relying on an x86-only image.
+The Docker image was built for Linux ARM64.
+
+This allowed the deployment to target ARM-based compute rather than relying on an x86-only image.
 
 ### Application Load Balancer
 
@@ -222,9 +240,11 @@ It also separated public access from the application containers.
 
 ### Resource Management
 
-The application, database and Redis were designed to run as containers within an ECS task. This kept the initial deployment architecture relatively straightforward.
+The application, database and Redis were designed to run as containers within a single ECS task.
 
-The trade-off is that running multiple containers in one task means they share the task's available compute resources and lifecycle.
+This kept the initial deployment architecture relatively straightforward.
+
+The trade-off is that the containers share the task's available compute resources and lifecycle.
 
 ## 8. CI/CD Pipeline
 
@@ -241,7 +261,7 @@ The workflow is manually triggered using `workflow_dispatch`.
 | 1. Trigger | Manually start the GitHub Actions workflow |
 | 2. Authentication | Authenticate with AWS using GitHub OIDC |
 | 3. Build | Build the Docker image using Docker Buildx |
-| 4. Tag | Tag the image with the commit SHA and `latest` |
+| 4. Tag | Tag the image with the Git commit SHA and `latest` |
 | 5. Push | Upload the image to Amazon ECR |
 | 6. Task definition | Retrieve the existing ECS task definition and update the Ghostfolio container image |
 | 7. Deploy | Deploy the updated task definition to the ECS service |
@@ -296,7 +316,7 @@ The main implementation work included:
 - Setting up GitHub Actions with AWS OIDC authentication.
 - Creating a workflow to build, push and deploy updated images.
 
-The result was a deployment setup that connected source control, container builds, AWS infrastructure and application deployment into one workflow.
+The result was a deployment setup connecting source control, container builds, AWS infrastructure and application deployment into one workflow.
 
 ## 10. Lessons Learned
 
@@ -306,10 +326,10 @@ Some of the main lessons were:
 
 - **Containerisation:** Building an image for an existing application requires understanding its build process, dependencies and runtime configuration.
 - **ECS task design:** Running multiple containers in one task requires careful consideration of networking, ports, environment variables and resource allocation.
-- **IAM and OIDC:** Getting GitHub Actions to authenticate with AWS requires the correct IAM role permissions and trust relationship.
+- **IAM and OIDC:** Connecting GitHub Actions to AWS requires the correct IAM role permissions and trust relationship.
 - **Networking:** Understanding how DNS, load balancers, security groups and container ports work together is essential for making an application accessible.
 - **Infrastructure as Code:** Terraform makes infrastructure easier to define, review and reproduce.
-- **CI/CD:** Automating image builds and deployments reduces the need for manual deployment steps and makes the process more repeatable.
+- **CI/CD:** Automating image builds and deployments reduces manual deployment steps and makes the process more repeatable.
 
 ## 11. Future Improvements
 
@@ -317,10 +337,9 @@ There are several areas where the project could be extended:
 
 - **Automated testing:** Add tests to the GitHub Actions workflow before building and deploying the image.
 - **Deployment verification:** Add an application health check after deployment to verify that Ghostfolio is responding correctly.
-- **Improved rollback:** Add a clearer rollback process for failed deployments.
+- **Improved rollback:** Introduce a clearer rollback process for failed deployments.
 - **Monitoring and alerting:** Expand monitoring and create alerts for application and infrastructure issues.
 - **Database backups:** Introduce a managed and automated backup strategy for PostgreSQL.
 - **Secrets management:** Review and expand the use of AWS Systems Manager Parameter Store for application configuration and secrets.
 - **Environment separation:** Introduce separate development and production environments.
 - **Automated deployments:** Consider triggering deployments automatically when changes are merged into the main branch.
-
