@@ -116,7 +116,7 @@ ecs-ghostfolio-project/
 │
 ├── assets/               # Architecture diagrams and screenshots
 │
-├── infra/                # Infrastructure as Code
+├── infrastructure/                # Infrastructure as Code
 │   └── terraform/        # Terraform configuration and resources
 │
 ├── .gitignore            # Git exclusion rules
