@@ -83,3 +83,9 @@ variable "access_token_salt" {
     error_message = "The access token salt must be at least 32 characters long."
   }
 }
+
+variable "domain_name" {
+  description = "Public domain name for the Ghostfolio application"
+  type        = string
+  default     = "ghostfolio.suhayb.co.uk"
+}
