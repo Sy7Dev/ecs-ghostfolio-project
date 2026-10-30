@@ -97,31 +97,33 @@ The architecture diagram illustrates how the AWS services, application container
 
 The repository separates application source code, infrastructure, deployment configuration and supporting documentation.
 
-```text
+```
 ecs-ghostfolio-project/
 │
-├── app/
-│   ├── .config/
-│   ├── apps/
-│   ├── libs/
-│   ├── prisma/
-│   ├── test/
-│   └── tools/
+├── .github/              # GitHub Actions workflows and automation
 │
-├── assets/
-├── docker/
-├── terraform/
+├── app/                  # Application source code and configuration
+│   ├── .agents/          # Agent skills and resources
+│   ├── .claude/          # Claude project configuration
+│   ├── .husky/           # Git hooks
+│   ├── .vscode/          # Editor configuration
+│   ├── apps/              # Application services
+│   ├── libs/              # Shared libraries and components
+│   ├── prisma/            # Database schema and migrations
+│   ├── test/              # Tests and test resources
+│   ├── tools/             # Build and development utilities
+│   └── ...                # Application configuration
 │
-├── .github/
-│   └── workflows/
-│       └── deploy-aws.yml
+├── assets/               # Architecture diagrams and screenshots
 │
-├── Dockerfile
-├── compose.yaml
-├── nx.json
-├── package.json
-├── package-lock.json
-└── README.md
+├── infra/                # Infrastructure as Code
+│   └── terraform/        # Terraform configuration and resources
+│
+├── .gitignore            # Git exclusion rules
+├── Dockerfile            # Application container image definition
+├── README.md             # Project documentation
+└── compose.yaml          # Local container orchestration
+
 ```
 
 | Directory / File | Purpose |
