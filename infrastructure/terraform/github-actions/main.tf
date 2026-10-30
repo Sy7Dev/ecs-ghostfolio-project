@@ -1,3 +1,4 @@
+
 terraform {
   required_version = ">= 1.10.0"
 
@@ -39,6 +40,8 @@ locals {
   service_arn = "arn:aws:ecs:${local.region}:${local.account_id}:service/${local.ecs_cluster}/${local.ecs_service}"
 
   task_definition_arn = "arn:aws:ecs:${local.region}:${local.account_id}:task-definition/${local.task_family}:*"
+
+  github_oidc_subject = "repo:Sy7Dev@130788594/ecs-ghostfolio-project@1434771748:ref:refs/heads/main"
 }
 
 # GitHub Actions OIDC provider
@@ -70,7 +73,7 @@ resource "aws_iam_role" "github_actions" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = "repo:${local.repository}:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" = local.github_oidc_subject
           }
         }
       }
@@ -175,7 +178,7 @@ resource "aws_iam_role" "github_actions_terraform" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = "repo:Sy7Dev@130788594/ecs-ghostfolio-project@1434771748:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" = local.github_oidc_subject
           }
         }
       }
@@ -218,9 +221,13 @@ resource "aws_iam_role_policy" "github_actions_terraform" {
         Resource = "arn:aws:s3:::${local.state_bucket}/ghostfolio/terraform.tfstate"
       },
       {
-        Sid      = "TerraformStateLockAccess"
-        Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Sid    = "TerraformStateLockAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
         Resource = "arn:aws:s3:::${local.state_bucket}/ghostfolio/terraform.tfstate.tflock"
       },
       {
