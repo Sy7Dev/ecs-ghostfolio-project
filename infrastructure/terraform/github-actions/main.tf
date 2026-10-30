@@ -175,7 +175,7 @@ resource "aws_iam_role" "github_actions_terraform" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = "repo:${local.repository}:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" = "repo:Sy7Dev@130788594/ecs-ghostfolio-project@1434771748:ref:refs/heads/main"
           }
         }
       }
