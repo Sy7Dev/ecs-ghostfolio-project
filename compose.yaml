@@ -1,6 +1,8 @@
-
 services:
   ghostfolio:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ghostfolio-demo:local
     ports:
       - "3333:3333"
