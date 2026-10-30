@@ -226,7 +226,7 @@ It also allowed the application to be deployed using a defined ECS task configur
 
 The Docker image was built for Linux ARM64.
 
-This allowed the deployment to target ARM-based compute rather than relying on an x86-only image.
+Uses ARM64 (AWS Graviton) architecture to benefit from lower compute pricing and improved price-performance compared with equivalent x86-based Fargate workloads.
 
 ### Application Load Balancer
 
