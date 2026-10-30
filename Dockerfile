@@ -27,8 +27,12 @@ COPY app/tsconfig.base.json tsconfig.base.json
 
 ENV NX_DAEMON=false
 
-# Build production application
-RUN npm run build:production
+# Build production application without Storybook
+RUN npx nx run api:copy-assets && \
+    npx nx run api:build:production && \
+    npx nx run client:copy-assets && \
+    npx nx run client:build:production && \
+    npm run replace-placeholders-in-build
 
 # ==========================================
 # Production dependencies
@@ -42,7 +46,7 @@ RUN npm ci
 COPY app/.config/ .config/
 COPY app/prisma/ prisma/
 
-# Restore original package configuration
+# Generate database typings
 COPY app/package.json package.json
 
 RUN npm run database:generate-typings
