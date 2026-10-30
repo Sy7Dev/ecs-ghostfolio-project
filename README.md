@@ -128,21 +128,15 @@ ecs-ghostfolio-project/
 
 | Directory / File | Purpose |
 |---|---|
-| `app/` | Groups the application source code and supporting application files |
-| `app/apps/` | Contains the application projects |
-| `app/libs/` | Contains shared application libraries |
-| `app/.config/` | Contains application-related configuration |
-| `app/prisma/` | Contains the Prisma schema and database migrations |
-| `app/test/` | Contains application tests and supporting test files |
-| `app/tools/` | Contains application tooling and supporting scripts |
-| `assets/` | Stores project screenshots and architecture diagrams |
-| `.github/workflows/` | Contains the GitHub Actions deployment workflow |
-| `docker/` | Contains Docker-related scripts and configuration |
-| `terraform/` | Contains AWS infrastructure configuration |
-| `Dockerfile` | Defines the application container image build |
-| `compose.yaml` | Defines the local multi-container setup |
-| `nx.json` | Configures the Nx workspace |
-| `package.json` | Defines project dependencies and npm scripts |
+| `.github/` | GitHub Actions workflows for automated builds and deployments |
+| `app/` | Ghostfolio application source code, dependencies and development configuration |
+| `assets/` | Architecture diagrams, screenshots and project visuals |
+| `infrastructure/terraform/` | Terraform configurations for provisioning and managing AWS infrastructure |
+| `Dockerfile` | Defines the application container image |
+| `compose.yaml` | Defines the local multi-container environment |
+| `.gitignore` | Specifies files and directories Git should ignore |
+| `README.md` | Project overview, architecture, setup and deployment documentation |
+
 
 ## 6. Key Components
 
