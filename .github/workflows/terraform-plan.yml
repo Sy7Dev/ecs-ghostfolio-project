@@ -1,0 +1,63 @@
+
+name: Terraform Plan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/terraform/**'
+      - '.github/workflows/terraform-plan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-plan
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-west-2
+  TF_IN_AUTOMATION: true
+
+jobs:
+  terraform-plan:
+    name: Format, validate and plan
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infrastructure/terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TF_AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform initialise
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan -input=false -no-color
+        env:
+          TF_VAR_postgres_password: ${{ secrets.TF_VAR_postgres_password }}
+          TF_VAR_jwt_secret_key: ${{ secrets.TF_VAR_jwt_secret_key }}
+          TF_VAR_access_token_salt: ${{ secrets.TF_VAR_access_token_salt }}
