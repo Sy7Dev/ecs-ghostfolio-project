@@ -1,5 +1,12 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.10.0"
+  backend "s3" {
+  bucket       = "ghostfolio-terraform-state-sy7-2026"
+  key          = "ghostfolio/github-actions/terraform.tfstate"
+  region       = "eu-west-2"
+  encrypt      = true
+  use_lockfile = true
+}
 
   required_providers {
     aws = {
