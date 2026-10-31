@@ -168,7 +168,7 @@
           "fileReplacements": [
             {
               "replace": "app/apps/client/src/environments/environment.ts",
-              "with": "app/apps/client/src/environments/environment.prod.ts"
+              "with": "apps/client/src/environments/environment.prod.ts"
             }
           ],
           "namedChunks": false,
