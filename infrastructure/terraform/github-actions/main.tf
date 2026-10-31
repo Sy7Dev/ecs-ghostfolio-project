@@ -359,7 +359,13 @@ resource "aws_iam_role_policy" "github_actions_terraform" {
           "ssm:RemoveTagsFromResource",
           "ssm:ListTagsForResource"
         ]
-        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter/ghostfolio/*"
+        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter/ghostfolio-dev/*"
+      },
+      {
+        Sid      = "TerraformSSMDescribe"
+        Effect   = "Allow"
+        Action   = ["ssm:DescribeParameters"]
+        Resource = "*"
       },
       {
         Sid    = "TerraformCloudWatchManagement"
