@@ -22,7 +22,7 @@ env:
 jobs:
   deploy:
     name: Build, push and deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Check out repository
@@ -37,11 +37,6 @@ jobs:
       - name: Log in to Amazon ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Set up QEMU (for linux/arm64 build on x86 runner)
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
