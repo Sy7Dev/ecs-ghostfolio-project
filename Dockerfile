@@ -18,8 +18,8 @@ COPY app/prisma/schema.prisma prisma/schema.prisma
 RUN npm ci
 
 # Copy application source
-COPY app/apps/ apps/
-COPY app/libs/ libs/
+COPY app/apps/ app/apps/
+COPY app/libs/ app/libs/
 COPY app/jest.config.ts jest.config.ts
 COPY app/jest.preset.js jest.preset.js
 COPY app/nx.json nx.json
