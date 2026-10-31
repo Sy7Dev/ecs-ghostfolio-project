@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions" />
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/Custom_DNS-555555?style=flat-square" alt="Custom DNS" />
   <img src="https://img.shields.io/badge/ARM64-0091BD?style=flat-square" alt="ARM64" />
 </p>
 
@@ -36,23 +35,23 @@
 
 ## 1. Project Overview
 
-This project explores the deployment of **Ghostfolio**, an open-source personal finance and investment portfolio tracking application, to AWS.
+This project explores the deployment of **Ghostfolio**, an open-source personal finance and investment portfolio tracking application, to Amazon Web Services (AWS).
 
 The goal was to take an existing application and build the cloud infrastructure and deployment process around it.
 
-I used Docker to package the application, Terraform to define the AWS infrastructure, and GitHub Actions to automate the deployment process.
+I used Docker to package the application, Terraform to define the AWS infrastructure, and GitHub Actions to automate application builds, infrastructure management and deployment.
 
-The application was designed to run on **Amazon ECS using Fargate**, with PostgreSQL for database storage and Redis for caching.
+The application runs on **Amazon ECS using Fargate**, with PostgreSQL for database storage and Redis for caching.
 
-The project brought together containerisation, cloud infrastructure, networking, IAM permissions and CI/CD in a practical deployment scenario.
+This project brought together containerisation, cloud infrastructure, networking, IAM permissions and CI/CD in a practical deployment scenario.
 
 ## 2. Application URL
 
 **Application:** [https://ghostfolio.suhayb.co.uk](https://ghostfolio.suhayb.co.uk)
 
-The application was configured to use a custom subdomain, with DNS managed through Fasthosts.
+The application uses a custom subdomain, with DNS managed through Fasthosts.
 
-HTTPS was configured using AWS Certificate Manager and an Application Load Balancer.
+HTTPS is configured using AWS Certificate Manager and an Application Load Balancer.
 
 <p align="center">
   <img src="assets/Domain.png" alt="Ghostfolio custom domain configuration" width="100%" />
@@ -72,14 +71,14 @@ The architecture is built around two main flows: application traffic and the dep
 
 ### Deployment flow
 
-1. A deployment is manually triggered through GitHub Actions.
+1. Changes are pushed to the GitHub repository or a workflow is manually triggered.
 2. GitHub Actions authenticates with AWS using OpenID Connect (OIDC).
 3. Docker Buildx builds the application image for Linux ARM64.
 4. The image is tagged and pushed to Amazon ECR.
-5. GitHub Actions retrieves the existing ECS task definition and updates it with the new image.
-6. ECS deploys the updated task definition.
+5. The application deployment workflow updates the ECS task definition with the new image.
+6. ECS deploys the updated task definition and waits for the service to stabilise.
 
-The architecture diagram illustrates how the AWS services, application containers and deployment workflow fit together.
+The architecture diagram illustrates how the AWS services, application containers and deployment workflows fit together.
 
 ## 4. Features
 
@@ -89,54 +88,48 @@ The architecture diagram illustrates how the AWS services, application container
 - **Database and caching:** PostgreSQL and Redis run alongside Ghostfolio in the ECS task.
 - **HTTPS access:** An Application Load Balancer and AWS Certificate Manager handle secure incoming traffic.
 - **Infrastructure as Code:** Terraform defines the AWS infrastructure.
-- **Automated deployment:** GitHub Actions builds and deploys updated application images.
-- **AWS authentication:** GitHub Actions uses OIDC to authenticate with AWS.
-- **ARM64 support:** Docker Buildx builds the application image for ARM64 compute.
+- **Automated CI/CD:** GitHub Actions automates application builds and deployment workflows.
+- **AWS authentication:** GitHub Actions uses OIDC to authenticate with AWS without storing long-lived AWS access keys.
+- **ARM64 support:** Docker Buildx builds the application image for Linux ARM64.
 
 ## 5. Repository Structure
 
 The repository separates application source code, infrastructure, deployment configuration and supporting documentation.
 
-```
+```text
 ecs-ghostfolio-project/
 │
-├── .github/              # GitHub Actions workflows and automation
+├── .github/
+│   └── workflows/             # GitHub Actions workflows
 │
-├── app/                  # Application source code and configuration
-│   ├── .agents/          # Agent skills and resources
-│   ├── .claude/          # Claude project configuration
-│   ├── .husky/           # Git hooks
-│   ├── .vscode/          # Editor configuration
-│   ├── apps/              # Application services
-│   ├── libs/              # Shared libraries and components
-│   ├── prisma/            # Database schema and migrations
-│   ├── test/              # Tests and test resources
-│   ├── tools/             # Build and development utilities
-│   └── ...                # Application configuration
+├── app/                       # Application source code
+│   ├── apps/                  # Application services
+│   ├── libs/                  # Shared libraries and components
+│   ├── prisma/                # Database schema and migrations
+│   ├── test/                  # Tests and test resources
+│   ├── tools/                 # Build and development utilities
+│   └── ...                    # Application configuration
 │
-├── assets/               # Architecture diagrams and screenshots
+├── assets/                    # Architecture diagrams and screenshots
 │
-├── infrastructure/                # Infrastructure as Code
-│   └── terraform/        # Terraform configuration and resources
+├── infrastructure/
+│   └── terraform/             # Terraform configuration and resources
 │
-├── .gitignore            # Git exclusion rules
-├── Dockerfile            # Application container image definition
-├── README.md             # Project documentation
-└── compose.yaml          # Local container orchestration
-
+├── .gitignore
+├── Dockerfile                 # Application container image definition
+├── README.md                  # Project documentation
+└── compose.yaml               # Local container orchestration
 ```
 
 | Directory / File | Purpose |
 |---|---|
-| `.github/` | GitHub Actions workflows for automated builds and deployments |
-| `app/` | Ghostfolio application source code, dependencies and development configuration |
-| `assets/` | Architecture diagrams, screenshots and project visuals |
-| `infrastructure/terraform/` | Terraform configurations for provisioning and managing AWS infrastructure |
+| `.github/workflows/` | GitHub Actions workflows for builds, infrastructure and deployment |
+| `app/` | Ghostfolio application source code and configuration |
+| `assets/` | Architecture diagrams and project screenshots |
+| `infrastructure/terraform/` | Terraform configurations for AWS infrastructure |
 | `Dockerfile` | Defines the application container image |
 | `compose.yaml` | Defines the local multi-container environment |
-| `.gitignore` | Specifies files and directories Git should ignore |
-| `README.md` | Project overview, architecture, setup and deployment documentation |
-
+| `README.md` | Project overview, architecture and documentation |
 
 ## 6. Key Components
 
@@ -150,13 +143,13 @@ ECS manages the application containers, while Fargate provides the compute capac
 
 ### Running Containers
 
-The ECS task was designed to run three containers:
+The ECS task is configured to run three containers:
 
 - Ghostfolio
 - PostgreSQL
 - Redis
 
-Keeping these containers within the same ECS task provided a straightforward deployment structure for the project.
+Keeping these containers within the same ECS task provides a straightforward deployment structure for the project.
 
 <p align="center">
   <img src="assets/Running tasks.png" alt="ECS running tasks and containers" width="100%" />
@@ -166,7 +159,7 @@ Keeping these containers within the same ECS task provided a straightforward dep
 
 Amazon Elastic Container Registry stores the Docker images used by the ECS deployment.
 
-The GitHub Actions workflow pushes the built image to ECR before updating the ECS task definition.
+The GitHub Actions application pipeline pushes the built image to ECR before the application deployment workflow updates the ECS task definition.
 
 <p align="center">
   <img src="assets/ECR.png" alt="Amazon ECR repository" width="100%" />
@@ -194,7 +187,7 @@ The target group connects the load balancer to the application running inside EC
 
 Terraform was used to define and provision the AWS infrastructure.
 
-Managing infrastructure as code made the configuration easier to organise, review and reproduce.
+Managing infrastructure as code makes the configuration easier to organise, review and reproduce.
 
 <p align="center">
   <img src="assets/Terraform.png" alt="Terraform infrastructure configuration" width="100%" />
@@ -206,11 +199,11 @@ Managing infrastructure as code made the configuration easier to organise, revie
 |---|---|
 | **AWS Certificate Manager** | Provides the SSL/TLS certificate for HTTPS |
 | **AWS IAM** | Controls permissions for AWS services and GitHub Actions |
-| **GitHub OIDC** | Allows GitHub Actions to authenticate with AWS without storing long-lived AWS access keys |
+| **GitHub OIDC** | Allows GitHub Actions to authenticate with AWS without long-lived access keys |
 | **Docker Buildx** | Builds the application image for ARM64 |
 | **PostgreSQL** | Stores application data |
 | **Redis** | Provides caching |
-| **Fasthosts** | Manages the project's custom domain and DNS records |
+| **Fasthosts** | Manages the custom domain and DNS records |
 
 ## 7. Cost and Availability Decisions
 
@@ -224,46 +217,89 @@ It also allowed the application to be deployed using a defined ECS task configur
 
 ### ARM64 Architecture
 
-The Docker image was built for Linux ARM64.
+The Docker image was built for Linux ARM64 to support ARM-based AWS compute, including Graviton-powered infrastructure.
 
-Uses ARM64 (AWS Graviton) architecture to benefit from lower compute pricing and improved price-performance compared with equivalent x86-based Fargate workloads.
+This provides an opportunity for improved price-performance compared with equivalent x86-based workloads.
 
 ### Application Load Balancer
 
-The Application Load Balancer provided a single entry point for incoming application traffic and handled HTTPS termination.
+The Application Load Balancer provides a single entry point for incoming application traffic and handles HTTPS termination.
 
-It also separated public access from the application containers.
+It also separates public access from the application containers.
 
 ### Resource Management
 
-The application, database and Redis were designed to run as containers within a single ECS task.
+The application, database and Redis are configured as containers within a single ECS task.
 
-This kept the initial deployment architecture relatively straightforward.
+This keeps the initial deployment architecture relatively straightforward.
 
 The trade-off is that the containers share the task's available compute resources and lifecycle.
 
 ## 8. CI/CD Pipeline
 
-The deployment process is handled by a GitHub Actions workflow located at:
+GitHub Actions is used to automate application builds, infrastructure planning, infrastructure deployment and application deployment.
 
-`.github/workflows/deploy-aws.yml`
+The project uses separate workflows to keep application delivery and infrastructure management organised.
 
-The workflow is manually triggered using `workflow_dispatch`.
+### Application Pipeline – Build and Push to ECR
 
-### Deployment Steps
+The application pipeline builds the Ghostfolio Docker image and publishes it to Amazon ECR.
 
-| Step | Action |
-|---|---|
-| 1. Trigger | Manually start the GitHub Actions workflow |
-| 2. Authentication | Authenticate with AWS using GitHub OIDC |
-| 3. Build | Build the Docker image using Docker Buildx |
-| 4. Tag | Tag the image with the Git commit SHA and `latest` |
-| 5. Push | Upload the image to Amazon ECR |
-| 6. Task definition | Retrieve the existing ECS task definition and update the Ghostfolio container image |
-| 7. Deploy | Deploy the updated task definition to the ECS service |
-| 8. Wait | Wait for the ECS service to reach a stable state |
+The workflow:
 
-### Why Use GitHub OIDC?
+1. Checks out the repository.
+2. Authenticates with AWS using GitHub OIDC.
+3. Logs in to Amazon ECR.
+4. Builds the Docker image using Docker Buildx.
+5. Builds for Linux ARM64.
+6. Tags the image using the Git commit SHA and `latest`.
+7. Pushes the image to Amazon ECR.
+
+**Application Pipeline evidence**
+
+<p align="center">
+  <img src="assets/application.png" alt="GitHub Actions application build and ECR push workflow" width="100%" />
+</p>
+
+### Terraform Plan
+
+The Terraform Plan workflow validates and plans infrastructure changes before deployment.
+
+This provides visibility into the resources Terraform intends to create, update or destroy before changes are applied.
+
+**Terraform Plan evidence**
+
+<p align="center">
+  <img src="assets/terraform-plan.png" alt="Terraform Plan GitHub Actions workflow" width="100%" />
+</p>
+
+### Terraform Deploy – Infrastructure Provisioning
+
+The Terraform Deploy workflow is manually triggered and applies the infrastructure plan to provision the required AWS resources.
+
+This separates infrastructure provisioning from the application build and deployment processes.
+
+**Terraform Deploy evidence**
+
+<p align="center">
+  <img src="assets/Terraform%20Deploy.png" alt="Terraform infrastructure deployment workflow" width="100%" />
+</p>
+
+### Deploy Ghostfolio to AWS ECS
+
+The application deployment workflow deploys the Ghostfolio container image to the existing AWS ECS Fargate service.
+
+It retrieves the existing ECS task definition, updates the Ghostfolio container image with the version stored in Amazon ECR and deploys the revised task definition.
+
+The workflow also waits for the ECS service to reach a stable state.
+
+**Deploy Ghostfolio to AWS ECS evidence**
+
+<p align="center">
+  <img src="assets/Deploy.png" alt="Deploy Ghostfolio to AWS ECS GitHub Actions workflow" width="100%" />
+</p>
+
+### AWS Authentication with OIDC
 
 Instead of storing permanent AWS access keys as GitHub secrets, OIDC allows GitHub Actions to assume an IAM role.
 
@@ -273,28 +309,34 @@ This avoids maintaining long-lived credentials and uses an IAM trust relationshi
 
 ```text
 Developer
-    |
-    v
+   |
+   v
 GitHub Repository
-    |
-    v
+   |
+   v
 GitHub Actions
-    |
-    v
+   |
+   v
 AWS Authentication (OIDC)
-    |
-    v
+   |
+   v
 Docker Buildx
-    |
-    v
+   |
+   v
 Amazon ECR
-    |
-    v
+   |
+   v
 Update ECS Task Definition
-    |
-    v
+   |
+   v
 Deploy to ECS Fargate
 ```
+
+### Infrastructure Cleanup
+
+A separate Terraform Destroy workflow is available for infrastructure cleanup.
+
+ECR repositories containing images can prevent deletion unless their contents are handled appropriately. The destroy workflow therefore needs to account for ECR image cleanup before the repository can be removed.
 
 ## 9. Project Delivery
 
@@ -304,15 +346,16 @@ The main implementation work included:
 
 - Preparing Ghostfolio for containerised deployment.
 - Creating a Docker image targeting Linux ARM64.
-- Defining the AWS infrastructure using Terraform.
+- Defining AWS infrastructure using Terraform.
 - Configuring ECS Fargate to run Ghostfolio, PostgreSQL and Redis.
 - Setting up ECR as the container image registry.
 - Configuring an Application Load Balancer and HTTPS.
 - Connecting a custom domain through Fasthosts DNS.
 - Setting up GitHub Actions with AWS OIDC authentication.
-- Creating a workflow to build, push and deploy updated images.
+- Creating workflows for application builds, infrastructure planning and infrastructure deployment.
+- Creating an application deployment workflow to update the running ECS service.
 
-The result was a deployment setup connecting source control, container builds, AWS infrastructure and application deployment into one workflow.
+The result is a deployment setup connecting source control, container builds, AWS infrastructure and application deployment into a repeatable workflow.
 
 ## 10. Lessons Learned
 
@@ -332,7 +375,7 @@ Some of the main lessons were:
 There are several areas where the project could be extended:
 
 - **Automated testing:** Add tests to the GitHub Actions workflow before building and deploying the image.
-- **Deployment verification:** Add an application health check after deployment to verify that Ghostfolio is responding correctly.
+- **Deployment verification:** Add application health checks after deployment to verify that Ghostfolio is responding correctly.
 - **Improved rollback:** Introduce a clearer rollback process for failed deployments.
 - **Monitoring and alerting:** Expand monitoring and create alerts for application and infrastructure issues.
 - **Database backups:** Introduce a managed and automated backup strategy for PostgreSQL.
