@@ -53,6 +53,7 @@ jobs:
 
       - name: Download current ECS task definition
         run: |
+          set -euo pipefail
           aws ecs describe-task-definition \
             --task-definition "$ECS_TASK_FAMILY" \
             --query taskDefinition \
