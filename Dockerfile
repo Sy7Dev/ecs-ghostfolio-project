@@ -11,6 +11,7 @@ COPY app/package.json package.json
 COPY app/package-lock.json package-lock.json
 COPY app/.config/ .config/
 COPY app/CHANGELOG.md CHANGELOG.md
+COPY LICENSE LICENSE
 COPY app/prisma/schema.prisma prisma/schema.prisma
 
 # Install dependencies
@@ -27,7 +28,7 @@ COPY app/tsconfig.base.json tsconfig.base.json
 
 ENV NX_DAEMON=false
 
-# Build production application without Storybook
+# Build production application
 RUN npx nx run api:copy-assets && \
     npx nx run api:build:production && \
     npx nx run client:copy-assets && \
