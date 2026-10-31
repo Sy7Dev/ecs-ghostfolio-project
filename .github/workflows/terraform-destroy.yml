@@ -33,6 +33,7 @@ jobs:
     steps:
       - name: Verify destruction confirmation
         shell: bash
+        working-directory: ${{ github.workspace }}
         env:
           CONFIRMATION: ${{ inputs.confirmation }}
         run: |
