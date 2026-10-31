@@ -126,7 +126,7 @@
       "{workspaceRoot}/angular.json",
       "{workspaceRoot}/tsconfig.base.json",
       "{workspaceRoot}/nx.json",
-      "{workspaceRoot}/app/prisma/schema.prisma"
+      "{workspaceRoot}/prisma/schema.prisma"
     ],
     "production": [
       "default",

@@ -2,61 +2,61 @@
   "name": "client",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "app/apps/client/src",
+  "sourceRoot": "apps/client/src",
   "prefix": "gf",
   "i18n": {
     "locales": {
       "ca": {
         "baseHref": "/ca/",
-        "translation": "app/apps/client/src/locales/messages.ca.xlf"
+        "translation": "apps/client/src/locales/messages.ca.xlf"
       },
       "de": {
         "baseHref": "/de/",
-        "translation": "app/apps/client/src/locales/messages.de.xlf"
+        "translation": "apps/client/src/locales/messages.de.xlf"
       },
       "es": {
         "baseHref": "/es/",
-        "translation": "app/apps/client/src/locales/messages.es.xlf"
+        "translation": "apps/client/src/locales/messages.es.xlf"
       },
       "fr": {
         "baseHref": "/fr/",
-        "translation": "app/apps/client/src/locales/messages.fr.xlf"
+        "translation": "apps/client/src/locales/messages.fr.xlf"
       },
       "it": {
         "baseHref": "/it/",
-        "translation": "app/apps/client/src/locales/messages.it.xlf"
+        "translation": "apps/client/src/locales/messages.it.xlf"
       },
       "ja": {
         "baseHref": "/ja/",
-        "translation": "app/apps/client/src/locales/messages.ja.xlf"
+        "translation": "apps/client/src/locales/messages.ja.xlf"
       },
       "ko": {
         "baseHref": "/ko/",
-        "translation": "app/apps/client/src/locales/messages.ko.xlf"
+        "translation": "apps/client/src/locales/messages.ko.xlf"
       },
       "nl": {
         "baseHref": "/nl/",
-        "translation": "app/apps/client/src/locales/messages.nl.xlf"
+        "translation": "apps/client/src/locales/messages.nl.xlf"
       },
       "pl": {
         "baseHref": "/pl/",
-        "translation": "app/apps/client/src/locales/messages.pl.xlf"
+        "translation": "apps/client/src/locales/messages.pl.xlf"
       },
       "pt": {
         "baseHref": "/pt/",
-        "translation": "app/apps/client/src/locales/messages.pt.xlf"
+        "translation": "apps/client/src/locales/messages.pt.xlf"
       },
       "tr": {
         "baseHref": "/tr/",
-        "translation": "app/apps/client/src/locales/messages.tr.xlf"
+        "translation": "apps/client/src/locales/messages.tr.xlf"
       },
       "uk": {
         "baseHref": "/uk/",
-        "translation": "app/apps/client/src/locales/messages.uk.xlf"
+        "translation": "apps/client/src/locales/messages.uk.xlf"
       },
       "zh": {
         "baseHref": "/zh/",
-        "translation": "app/apps/client/src/locales/messages.zh.xlf"
+        "translation": "apps/client/src/locales/messages.zh.xlf"
       }
     },
     "sourceLocale": "en"
@@ -71,24 +71,24 @@
     "build": {
       "executor": "@nx/angular:browser-esbuild",
       "options": {
-        "index": "app/apps/client/src/index.html",
-        "main": "app/apps/client/src/main.ts",
+        "index": "apps/client/src/index.html",
+        "main": "apps/client/src/main.ts",
         "outputPath": "dist/apps/client",
-        "tsConfig": "app/apps/client/tsconfig.app.json",
+        "tsConfig": "apps/client/tsconfig.app.json",
         "buildOptimizer": false,
         "deleteOutputPath": false,
         "extractLicenses": false,
         "localize": true,
         "namedChunks": true,
-        "ngswConfigPath": "app/apps/client/ngsw-config.json",
+        "ngswConfigPath": "apps/client/ngsw-config.json",
         "optimization": false,
-        "polyfills": "app/apps/client/src/polyfills.ts",
+        "polyfills": "apps/client/src/polyfills.ts",
         "serviceWorker": true,
         "sourceMap": true,
         "styles": [
-          "app/apps/client/src/assets/fonts/inter.css",
-          "app/apps/client/src/styles/theme.scss",
-          "app/apps/client/src/styles.scss",
+          "apps/client/src/assets/fonts/inter.css",
+          "apps/client/src/styles/theme.scss",
+          "apps/client/src/styles.scss",
           "node_modules/open-color/open-color.css"
         ],
         "vendorChunk": true
@@ -167,8 +167,8 @@
           "extractLicenses": true,
           "fileReplacements": [
             {
-              "replace": "app/apps/client/src/environments/environment.ts",
-              "with": "app/apps/client/src/environments/environment.prod.ts"
+              "replace": "apps/client/src/environments/environment.ts",
+              "with": "apps/client/src/environments/environment.prod.ts"
             }
           ],
           "namedChunks": false,
@@ -220,10 +220,10 @@
       "executor": "@nx/angular:dev-server",
       "options": {
         "buildTarget": "client:build",
-        "proxyConfig": "app/apps/client/proxy.conf.json",
+        "proxyConfig": "apps/client/proxy.conf.json",
         "ssl": true,
-        "sslCert": "app/apps/client/localhost.cert",
-        "sslKey": "app/apps/client/localhost.pem"
+        "sslCert": "apps/client/localhost.cert",
+        "sslKey": "apps/client/localhost.pem"
       },
       "configurations": {
         "development-ca": {
@@ -301,14 +301,14 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["app/apps/client/**/*.ts"]
+        "lintFilePatterns": ["apps/client/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nx/jest:jest",
       "options": {
-        "jestConfig": "app/apps/client/jest.config.ts",
-        "tsConfig": "app/apps/client/tsconfig.spec.json"
+        "jestConfig": "apps/client/jest.config.ts",
+        "tsConfig": "apps/client/tsconfig.spec.json"
       },
       "outputs": ["{workspaceRoot}/coverage/apps/client"]
     }

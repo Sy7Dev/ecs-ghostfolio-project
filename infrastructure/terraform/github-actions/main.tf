@@ -129,7 +129,8 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
         Action = [
           "ecs:RegisterTaskDefinition"
         ]
-        Resource = local.task_definition_arn
+        # RegisterTaskDefinition does not support resource-level permissions
+        Resource = "*"
       },
       {
         Sid    = "DescribeTaskDefinitions"
@@ -406,7 +407,13 @@ resource "aws_iam_role_policy" "github_actions_terraform" {
           "elasticloadbalancing:ModifyListener",
           "elasticloadbalancing:AddTags",
           "elasticloadbalancing:RemoveTags",
-          "elasticloadbalancing:DescribeTags"
+          "elasticloadbalancing:DescribeTags",
+          "elasticloadbalancing:DescribeLoadBalancerAttributes",
+          "elasticloadbalancing:DescribeTargetGroupAttributes",
+          "elasticloadbalancing:DescribeListenerAttributes",
+          "elasticloadbalancing:ModifyTargetGroupAttributes",
+          "elasticloadbalancing:SetSecurityGroups",
+          "elasticloadbalancing:SetSubnets"
         ]
         Resource = "*"
       }

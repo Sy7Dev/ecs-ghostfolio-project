@@ -18,12 +18,12 @@ COPY app/prisma/schema.prisma prisma/schema.prisma
 RUN npm ci
 
 # Copy application source
-COPY app/apps/ app/apps/
-COPY app/libs/ app/libs/
+COPY app/apps/ apps/
+COPY app/libs/ libs/
 COPY app/jest.config.ts jest.config.ts
 COPY app/jest.preset.js jest.preset.js
 COPY app/nx.json nx.json
-COPY app/tools/replace.build.mjs replace.build.mjs
+COPY app/tools/ tools/
 COPY app/tsconfig.base.json tsconfig.base.json
 
 ENV NX_DAEMON=false
