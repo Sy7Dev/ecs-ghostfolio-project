@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions" />
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Custom_DNS-Fasthosts-blue?style=flat-square" alt="Custom DNS" />
   <img src="https://img.shields.io/badge/ARM64-0091BD?style=flat-square" alt="ARM64" />
 </p>
 
